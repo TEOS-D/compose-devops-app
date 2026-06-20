@@ -4,75 +4,75 @@ on:
   push:
     branches:
       - main
-pull_request:
-  branches:
-    - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   docker-compose-check:
     runs-on: ubuntu-latest
 
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Show Docker versions
-    run: |
-      docker --version
-      docker compose version
+      - name: Show Docker versions
+        run: |
+          docker --version
+          docker compose version
 
-  - name: Validate Docker Compose config
-    run: |
-      docker compose config
+      - name: Create .env file for CI
+        run: |
+          cp .env.example .env
+          echo "APP_SECRET_KEY=ci-fake-secret" >> .env
 
-  - name: Create .env file for CI
-    run: |
-      cp .env.example .env
-      echo "APP_SECRET_KEY=ci-fake-secret" >> .env
+      - name: Create self-signed certificates for CI
+        run: |
+          mkdir -p nginx/certs
+          openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
+            -keyout nginx/certs/devops.local.key \
+            -out nginx/certs/devops.local.crt \
+            -subj "/CN=localhost"
 
-  - name: Create self-signed certificates for CI
-    run: |
-      mkdir -p nginx/certs
-      openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
-        -keyout nginx/certs/devops.local.key \
-        -out nginx/certs/devops.local.crt \
-        -subj "/CN=localhost"
+      - name: Validate Docker Compose config
+        run: |
+          docker compose config
 
-  - name: Build and start services
-    run: |
-      docker compose up -d --build --scale app-blue=2 --scale app-green=2
+      - name: Build and start services
+        run: |
+          docker compose up -d --build --scale app-blue=2 --scale app-green=2
 
-  - name: Show running containers
-    run: |
-      docker compose ps
+      - name: Show running containers
+        run: |
+          docker compose ps
 
-  - name: Wait for services
-    run: |
-      sleep 15
-      docker compose ps
+      - name: Wait for services
+        run: |
+          sleep 15
+          docker compose ps
 
-  - name: Test nginx HTTPS health
-    run: |
-      curl -k -i https://localhost:8443/health
-      curl -k -s https://localhost:8443/health | grep "nginx is alive over https"
+      - name: Test nginx HTTPS health
+        run: |
+          curl -k -i https://localhost:8443/health
+          curl -k -s https://localhost:8443/health | grep "nginx is alive over https"
 
-  - name: Test API through nginx
-    run: |
-      curl -k -i https://localhost:8443/api/
-      curl -k -s https://localhost:8443/api/ | grep "App: green"
-      curl -k -s https://localhost:8443/api/ | grep "Version: 4.0"
+      - name: Test API through nginx
+        run: |
+          curl -k -i https://localhost:8443/api/
+          curl -k -s https://localhost:8443/api/ | grep "App: green"
+          curl -k -s https://localhost:8443/api/ | grep "Version: 4.0"
 
-  - name: Test HTTP to HTTPS redirect
-    run: |
-      curl -k -I http://localhost:8090/api/ | grep "301"
+      - name: Test HTTP to HTTPS redirect
+        run: |
+          curl -k -I http://localhost:8090/api/ | grep "301"
 
-  - name: Show logs on failure
-    if: failure()
-    run: |
-      docker compose ps
-      docker compose logs --tail 100
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs --tail 100
 
-  - name: Stop services
-    if: always()
-    run: |
-      docker compose down
+      - name: Stop services
+        if: always()
+        run: |
+          docker compose down
