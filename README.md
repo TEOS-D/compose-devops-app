@@ -19,6 +19,21 @@
 - named volumes
 - env-файлы и `.env.example`
 
+## CI
+
+Проект проверяется через GitHub Actions.
+
+Pipeline выполняет:
+
+- проверку Docker Compose конфигурации
+- создание `.env` для CI
+- создание временного self-signed сертификата
+- сборку Docker images
+- запуск сервисов через Docker Compose
+- проверку HTTPS health endpoint
+- проверку API через Nginx
+- проверку HTTP to HTTPS redirect
+
 ## Быстрый запуск
 
 ```bash
