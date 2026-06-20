@@ -23,5 +23,9 @@ venv/
 *.log
 
 # help_files
-
 help_com.txt
+
+# local test / backup files
+big_body.txt
+*.backup
+docker-compose.override1.yml
