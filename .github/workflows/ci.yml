@@ -1,16 +1,16 @@
 name: CI
 
 on:
-push:
-branches:
-- main
+  push:
+    branches:
+      - main
 pull_request:
-branches:
-- main
+  branches:
+    - main
 
 jobs:
-docker-compose-check:
-runs-on: ubuntu-latest
+  docker-compose-check:
+    runs-on: ubuntu-latest
 
 steps:
   - name: Checkout repository
