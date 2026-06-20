@@ -1,0 +1,45 @@
+services:
+  app-a:
+    build: .
+    image: devops-app-compose:1.0
+    container_name: compose-app-a
+    environment:
+      APP_NAME: compose-app-a
+      PORT: 3000
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/health')"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+
+  app-b:
+    build: .
+    image: devops-app-compose:1.0
+    container_name: compose-app-b
+    environment:
+      APP_NAME: compose-app-b
+      PORT: 3000
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/health')"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+
+  nginx:
+    image: nginx
+    container_name: compose-nginx
+    ports:
+      - "8090:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+       app-a:
+        condition: service_healthy
+       app-b:
+        condition: service_healthy
