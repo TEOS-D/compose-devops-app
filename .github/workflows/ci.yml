@@ -9,7 +9,28 @@ on:
       - main
 
 jobs:
+  repo-sanity-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required project files
+        run: |
+          test -f README.md
+          test -f Dockerfile
+          test -f docker-compose.yml
+          test -f .env.example
+          test -f requirements.txt
+          test -f nginx/default.conf
+      - name:  Check secrets are not tracker
+        run: |
+          ! git ls-files | grep -E '(^|/)\.env$'
+          ! git ls-files | grep -E '\.key$'
+
   docker-compose-check:
+    needs: repo-sanity-check
     runs-on: ubuntu-latest
 
     steps:
