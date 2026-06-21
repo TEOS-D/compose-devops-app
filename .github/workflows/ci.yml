@@ -24,13 +24,35 @@ jobs:
           test -f .env.example
           test -f requirements.txt
           test -f nginx/default.conf
-      - name:  Check secrets are not tracker
+
+      - name: Check secrets are not tracked
         run: |
           ! git ls-files | grep -E '(^|/)\.env$'
           ! git ls-files | grep -E '\.key$'
 
-  docker-compose-check:
+  docker-build-check:
     needs: repo-sanity-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Docker versions
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Build app image
+        run: |
+          docker build -t compose-devops-app:test .
+
+      - name: Check app image exists
+        run: |
+          docker images compose-devops-app:test
+
+  docker-compose-smoke-test:
+    needs: docker-build-check
     runs-on: ubuntu-latest
 
     steps:
