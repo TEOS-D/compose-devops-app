@@ -7,9 +7,9 @@ on:
   pull_request:
     branches:
       - main
-permission:
-  contests: read
-  packages: write
+  permission:
+    contests: read
+    packages: write
 
 jobs:
   repo-sanity-check:
