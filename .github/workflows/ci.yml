@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   repo-sanity-check:
     runs-on: ubuntu-latest
@@ -119,3 +123,30 @@ jobs:
         if: always()
         run: |
           docker compose down
+
+  docker-publish-ghcr:
+    needs: docker-compose-smoke-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Build Docker image
+        run: |
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker build -t "$IMAGE_NAME:latest" .
+          docker build -t "$IMAGE_NAME:${GITHUB_SHA}" .
+
+      - name: Push Docker image
+        run: |
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker push "$IMAGE_NAME:latest"
+          docker push "$IMAGE_NAME:${GITHUB_SHA}"
