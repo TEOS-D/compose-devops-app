@@ -67,7 +67,7 @@ jobs:
       - name: Create .env file for CI
         run: |
           cp .env.example .env
-          echo "APP_SECRET_KEY=ci-fake-secret" >> .env
+          echo "APP_SECRET_KEY=ci-fake-secret_1" >> .env
 
       - name: Create self-signed certificates for CI
         run: |
