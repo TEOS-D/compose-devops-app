@@ -38,7 +38,7 @@ class Handler(BaseHTTPRequestHandler):
             <p>Hostname: {socket.gethostname()}</p>
             <p>Path: {self.path}</p>
             <p>Time: {datetime.now()}</p>
-            <p> I love you!</p>
+            <p> I love you! </p>
         </body>
         </html>
         """
