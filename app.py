@@ -32,12 +32,13 @@ class Handler(BaseHTTPRequestHandler):
         <html>
         <head><title>Docker DevOps App</title></head>
         <body>
-            <h1>Hello from Docker Python app</h1>
+            <h1>Hello for Angela</h1>
             <p>App: {APP_NAME}</p>
 	    <p>Version: {APP_VERSION}</p>
             <p>Hostname: {socket.gethostname()}</p>
             <p>Path: {self.path}</p>
             <p>Time: {datetime.now()}</p>
+            <p> I love you!</p>
         </body>
         </html>
         """
