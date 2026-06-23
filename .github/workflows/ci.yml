@@ -150,3 +150,37 @@ jobs:
           IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
           docker push "$IMAGE_NAME:latest"
           docker push "$IMAGE_NAME:${GITHUB_SHA}"
+
+  deploy-to-server:
+    needs: docker-publish-ghcr
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy on server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' <<'EOF'
+          set -e
+
+          cd /opt/compose-devops-app
+
+          docker compose pull
+          docker compose up -d --remove-orphans
+          docker compose ps
+
+          curl -fsS http://localhost/health
+          curl -fsS http://localhost/api/ | grep "App:"
+          EOF
