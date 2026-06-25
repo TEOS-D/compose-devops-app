@@ -105,9 +105,20 @@ jobs:
 
       - name: Test API through nginx
         run: |
-          curl -k -i https://localhost:8443/api/
-          curl -k -s https://localhost:8443/api/ | grep "App: green"
-          curl -k -s https://localhost:8443/api/ | grep "Version: 4.0"
+         curl -k -f -s https://localhost:8443/api/ > /tmp/api.html
+
+         grep "TEOS DevOps Lab" /tmp/api.html
+         grep "GitHub Actions" /tmp/api.html
+         grep "GHCR" /tmp/api.html
+
+         curl -k -f -s https://localhost:8443/api/info > /tmp/api-info.json
+
+         grep '"app"' /tmp/api-info.json
+         grep '"green"' /tmp/api-info.json
+         grep '"version"' /tmp/api-info.json
+         grep '"4.0"' /tmp/api-info.json
+         grep '"status"' /tmp/api-info.json
+         grep '"ok"' /tmp/api-info.json
 
       - name: Test HTTP to HTTPS redirect
         run: |
